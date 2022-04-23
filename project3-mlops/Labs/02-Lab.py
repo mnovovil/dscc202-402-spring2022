@@ -52,15 +52,16 @@ X_train, X_test, y_train, y_test = train_test_split(df.drop(["price"], axis=1), 
 import mlflow.sklearn
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV
-
+import numpy as np
+ 
 # dictionary containing hyperparameter names and list of values we want to try
-parameters = {'n_estimators': #FILL_IN , 
-              'max_depth': #FILL_IN }
-
+parameters = {'n_estimators': np.arange(1,10,1), 
+              'max_depth': np.arange(1,10,1) }
+ 
 rf = RandomForestRegressor()
 grid_rf_model = GridSearchCV(rf, parameters, cv=3)
 grid_rf_model.fit(X_train, y_train)
-
+ 
 best_rf = grid_rf_model.best_estimator_
 for p in parameters:
   print("Best '{}': {}".format(p, best_rf.get_params()[p]))
@@ -76,22 +77,36 @@ for p in parameters:
 
 # TODO
 from sklearn.metrics import mean_squared_error
-
-with mlflow.start_run(run_name= FILL_IN) as run:
+ 
+with mlflow.start_run(run_name= "RF-Grid-Search") as run:
+  # log params
+    parameters = {'n_estimators': np.arange(1,10,1), 
+                  'max_depth': np.arange(1,10,1) }
+    
   # Create predictions of X_test using best model
-  # FILL_IN
-  
+    rf = RandomForestRegressor()
+    grid_rf_model = GridSearchCV(rf, parameters, cv=3)
+    grid_rf_model.fit(X_train, y_train)
+    predictions = grid_rf_model.predict(X_test)
+    
   # Log model with name
-  # FILL_IN
-  
-  # Log params
-  # FILL_IN
+    mlflow.sklearn.log_model(grid_rf_model, "grid-random-forest-model")
   
   # Create and log MSE metrics using predictions of X_test and its actual value y_test
-  # FILL_IN
-  
-  runID = run.info.run_uuid
-  print("Inside MLflow Run with id {}".format(runID))
+    mse = mean_squared_error(y_test, predictions)
+    print(f"mse: {mse}")
+    print(f"best-params: {grid_rf_model.best_params_}")
+    
+        #log metrics and best params
+    mlflow.log_metric("mse", mse)
+    mlflow.log_params(grid_rf_model.best_params_)
+    
+    #record runID and experimentdID
+    runID = run.info.run_uuid
+    experimentID = run.info.experiment_id
+    artifactURI = mlflow.get_artifact_uri()
+    
+    print("Inside MLflow Run with id {}, and experimentID {}, and artifactURI: {}".format(runID, experimentID, artifactURI))
 
 # COMMAND ----------
 
@@ -110,7 +125,8 @@ with mlflow.start_run(run_name= FILL_IN) as run:
 # COMMAND ----------
 
 # TODO
-model = < FILL_IN >
+artifactURI = "dbfs:/databricks/mlflow-tracking/185354766206883/241f40588e504b19b71d316ab752b706/artifacts"
+mlflow.pyfunc.load_model(artifactURI+"/grid-random-forest-model")
 
 # COMMAND ----------
 
@@ -120,6 +136,38 @@ model = < FILL_IN >
 # COMMAND ----------
 
 # TODO
+# TODO
+from sklearn.metrics import mean_squared_error
+ 
+with mlflow.start_run(run_name= "RF-Grid-Search") as run:
+  # log params
+    parameters = {'n_estimators': np.arange(1,1000,1), 
+                  'max_depth': np.arange(1,20,5) }
+    
+  # Create predictions of X_test using best model
+    rf = RandomForestRegressor()
+    grid_rf_model = GridSearchCV(rf, parameters, cv=3)
+    grid_rf_model.fit(X_train, y_train)
+    predictions = grid_rf_model.predict(X_test)
+    
+  # Log model with name
+    mlflow.sklearn.log_model(grid_rf_model, "grid-random-forest-model")
+  
+  # Create and log MSE metrics using predictions of X_test and its actual value y_test
+    mse = mean_squared_error(y_test, predictions)
+    print(f"mse: {mse}")
+    print(f"best-params: {grid_rf_model.best_params_}")
+    
+        #log metrics and best params
+    mlflow.log_metric("mse", mse)
+    mlflow.log_params(grid_rf_model.best_params_)
+    
+    #record runID and experimentdID
+    runID = run.info.run_uuid
+    experimentID2 = run.info.experiment_id
+    artifactURI2 = mlflow.get_artifact_uri()
+    
+    print("Inside MLflow Run with id {}, and experimentID {}, and artifactURI: {}".format(runID, experimentID2, artifactURI2))
 
 # COMMAND ----------
 
@@ -129,6 +177,9 @@ model = < FILL_IN >
 # COMMAND ----------
 
 # TODO
+# TODO
+artifactURI2 = "" #supposed to plug in the artifact ID that I get from the previous one
+mlflow.pyfunc.load_model(artifactURI2+"/grid-random-forest-model")
 
 # COMMAND ----------
 
